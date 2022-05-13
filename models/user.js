@@ -98,6 +98,41 @@ class User {
         // updated cart to have all items except the deleted one..
         { $set: { cart: { items: updatedCartItems } } }
       )
+  }
+
+  placeOrder() {
+    const db = getDb()
+    // need information about user from the cart
+    return this.getCart()
+      .then(products => {
+        // create order fromproduct data 
+        const order = {
+          items: products,
+          user: {
+            _id: new ObjectId(this._id),
+            name: this.name,
+            email: this.email,
+          }
+        }
+        return db.collection('orders').insertOne(order)
+      }).then(result => {
+        this.cart = { items: [] }   // after place order, we emptied our cart 
+        return db
+          .collection('users')
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          )
+      })
+  }
+
+  getOrders() {
+    const db = getDb()
+
+    return db
+      .collection('orders')
+      .find({ 'user._id': new ObjectId(this._id) })
+      .toArray()
 
   }
 
