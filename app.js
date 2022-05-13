@@ -2,10 +2,15 @@ const path = require('path');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose')
 
 const errorController = require('./controllers/error');
-const mongoConnect = require('./util/database').mongoConnect
 const User = require('./models/user')
+
+const password = ''
+const database = 'shop'
+const mongodbUrl =
+  `mongodb+srv://walid-nodejs:${password}@cluster0.swsls.mongodb.net/test?retryWrites=true&w=majority`
 
 const app = express();
 
@@ -33,7 +38,11 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-  app.listen(3000)
-})
+mongoose
+  .connect(mongodbUrl)
+  .then(result => {
+    app.listen(3000)
+    console.log(`Connected to database`)
+  })
+  .catch(err => console.log(err))
 
