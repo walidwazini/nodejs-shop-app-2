@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose')
 
 const errorController = require('./controllers/error');
-// const User = require('./models/user')
+const User = require('./models/user')
 
 const password = ''
 const database = 'shop'
@@ -23,15 +23,15 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use((req, res, next) => {
-//   User.findById('627d02c9327ac73c7dbb94fd')
-//     .then(user => {
-//       req.user = new User(user.name, user.email, user.cart, user._id)
-//       // req.user = user
-//       next();
-//     })
-//     .catch(err => console.log(err));
-// });
+app.use((req, res, next) => {
+  User.findById('6282966e6e0ce8b4d47972c3')
+    .then(user => {
+      req.user = user
+      next()
+      // console.log(`${user} is now online`)
+    })
+    .catch(err => console.log(err))
+})
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -40,9 +40,25 @@ app.use(errorController.get404);
 
 mongoose
   .connect(mongodbUrl)
-  .then(result => {
+  .then(async (result) => {
+    const loginUser = await User.findOne()
+      .then(user => {
+        if (!user) {
+          const user = new User({
+            name: 'Walid',
+            email: 'walid@email.com',
+            cart: {
+              items: []
+            }
+          })
+          user.save()
+        }
+        return user
+      })
+      .catch(err => console.log(err))
     app.listen(3000)
-    console.log(`Connected to database`)
+    const userId = `${loginUser._id.toString().slice(0, 3)}...${loginUser._id.toString().slice(-3)}`
+    console.log(`ID (${userId}) is now connnected to database.`)
   })
   .catch(err => console.log(err))
 
